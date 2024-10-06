@@ -19,26 +19,25 @@ local UI = Lib:Create{
     Name = "Sair"
  }
 
--- Aimbot em terceira pessoa para Roblox
+-- Script de Aim Bot para terceira pessoa com movimento livre do mouse
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
-local Camera = game.Workspace.CurrentCamera
+local RunService = game:GetService("RunService")
 
-local function GetClosestPlayer()
+local aimKey = Enum.KeyCode.E -- Tecla para ativar o aim bot
+local aiming = false
+
+local function getClosestPlayer()
     local closestPlayer = nil
     local shortestDistance = math.huge
 
     for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
-            local character = player.Character
-            if character and character:FindFirstChild("Head") then
-                local screenPoint = Camera:WorldToScreenPoint(character.Head.Position)
-                local distance = (Vector2.new(screenPoint.X, screenPoint.Y) - UserInputService:GetMouseLocation()).magnitude
-                if distance < shortestDistance then
-                    closestPlayer = player
-                    shortestDistance = distance
-                end
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).magnitude
+            if distance < shortestDistance then
+                closestPlayer = player
+                shortestDistance = distance
             end
         end
     end
@@ -47,10 +46,21 @@ local function GetClosestPlayer()
 end
 
 UserInputService.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.E then
-        local target = GetClosestPlayer()
+    if input.KeyCode == aimKey then
+        aiming = true
+        local target = getClosestPlayer()
         if target then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
+            RunService.RenderStepped:Connect(function()
+                if aiming and target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(LocalPlayer.Character.HumanoidRootPart.Position, target.Character.HumanoidRootPart.Position)
+                end
+            end)
         end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == aimKey then
+        aiming = false
     end
 end)
