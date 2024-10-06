@@ -19,43 +19,22 @@ local UI = Lib:Create{
     Name = "Sair"
  }
 
---Abaixo estará a Lib da nossa Ui
-
-local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/7yhx/kwargs_Ui_Library/main/source.lua"))()
-
-local UI = Lib:Create{
-    Theme = "Dark", -- or any other theme
-    Size = UDim2.new(0, 555, 0, 400) -- default
- }
- 
- local Main = UI:Tab{
-    Name = "Inicio"
- }
- 
- local Divider = Main:Divider{
-    Name = "Inicio shit"
- }
- 
- local QuitDivider = Main:Divider{
-    Name = "Sair"
- }
-
--- Script de Aim Bot para terceira pessoa com movimento livre do mouse
+-- Script de aimbot universal para Roblox com botão de ativação
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local UserInputService = game:GetService("UserInputService")
+local Mouse = LocalPlayer:GetMouse()
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
-local aimKey = Enum.KeyCode.E -- Tecla para ativar o aim bot
-local aiming = false
+local aimbotEnabled = false
 
-local function getClosestPlayer()
+local function GetClosestPlayer()
     local closestPlayer = nil
     local shortestDistance = math.huge
 
     for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local distance = (player.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).magnitude
+        if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team and player.Character and player.Character:FindFirstChild("Head") then
+            local distance = (player.Character.Head.Position - LocalPlayer.Character.Head.Position).magnitude
             if distance < shortestDistance then
                 closestPlayer = player
                 shortestDistance = distance
@@ -66,22 +45,20 @@ local function getClosestPlayer()
     return closestPlayer
 end
 
-UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == aimKey then
-        aiming = true
-        local target = getClosestPlayer()
+RunService.RenderStepped:Connect(function()
+    if aimbotEnabled then
+        local target = GetClosestPlayer()
         if target then
-            RunService.RenderStepped:Connect(function()
-                if aiming and target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-                    LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(LocalPlayer.Character.HumanoidRootPart.Position, target.Character.HumanoidRootPart.Position)
-                end
-            end)
+            local targetPosition = target.Character.Head.Position
+            local screenPoint = workspace.CurrentCamera:WorldToViewportPoint(targetPosition)
+            mousemoverel((screenPoint.X - Mouse.X), (screenPoint.Y - Mouse.Y))
         end
     end
 end)
 
-UserInputService.InputEnded:Connect(function(input)
-    if input.KeyCode == aimKey then
-        aiming = false
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.E and not gameProcessed then
+        aimbotEnabled = not aimbotEnabled
+        print("Aimbot " .. (aimbotEnabled and "ativado" or "desativado"))
     end
 end)
