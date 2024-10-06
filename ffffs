@@ -51,7 +51,7 @@ RunService.RenderStepped:Connect(function()
         if target then
             local targetPosition = target.Character.Head.Position
             local screenPoint = workspace.CurrentCamera:WorldToViewportPoint(targetPosition)
-            mousemoverel((screenPoint.X - Mouse.X), (screenPoint.Y - Mouse.Y))
+            mousemoverel((screenPoint.X - Mouse.X) / 2, (screenPoint.Y - Mouse.Y) / 2)
         end
     end
 end)
